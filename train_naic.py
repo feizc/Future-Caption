@@ -76,7 +76,6 @@ def evaluate_metrics(model, test_dataloader, tokenizer, epoch):
     
             caps_gt = tokenizer.batch_decode(tokens)
             caps_gen = tokenizer.batch_decode(gen_idx)
-
             for i, (gts_i, gen_i) in enumerate(zip(caps_gt, caps_gen)):
                 gen_i = ' '.join([k for k, g in itertools.groupby(gen_i)])
                 gen['%d_%d' % (idx, i)] = [gen_i, ]
@@ -120,14 +119,19 @@ def main():
         optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=args.epochs * len(train_dataloader)
     ) 
 
+    best_cider = .0 
+
     for epoch in range(args.epochs): 
         train_loss = train(model, train_dataloader, args, optimizer, scheduler, epoch, tokenizer) 
         scores = evaluate_metrics(model, train_dataloader, tokenizer, epoch)
-        
-        torch.save(
-            model.state_dict(), 
-            os.path.join(args.out_dir, f"{args.model_type}-{epoch:02d}.pt")
-        )
+        val_cider = scores['CIDEr'] 
+
+        if val_cider >= best_cider:
+            best_cider = val_cider
+            torch.save(
+                model.state_dict(), 
+                os.path.join(args.out_dir, f"{args.model_type}-{epoch:02d}.pt")
+            )
         break 
 
 
@@ -135,13 +139,3 @@ def main():
 
 if __name__ == '__main__':   
     main()
-    '''
-    input_f = torch.randn((5,16,512)) 
-    input_l = torch.ones((5,20)).long()
-    v_encoder = Encoder()
-    l_decoder = NAICDecoder() 
-    enc_o = v_encoder(input_f)
-    print(enc_o[0].size())
-    dec_o = l_decoder(input_l, enc_o[0], None)
-    print(dec_o[0].size())
-    '''

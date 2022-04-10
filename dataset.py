@@ -48,8 +48,11 @@ class ClipCocoDataset(Dataset):
         return len(self.captions_tokens)
 
     def pad_tokens(self, item: int):
-        tokens = self.captions_tokens[item]
-        padding = self.max_seq_len - tokens.shape[0]
+        tokens = self.captions_tokens[item] 
+        if self.padding == False:
+            padding = 0
+        else:
+            padding = self.max_seq_len - tokens.shape[0]
         if padding > 0:
             tokens = torch.cat((tokens, torch.zeros(padding, dtype=torch.int64) - 1))
             self.captions_tokens[item] = tokens
@@ -69,7 +72,7 @@ class ClipCocoDataset(Dataset):
             features = features / features.norm(2, -1)
         return tokens, mask, features
 
-    def __init__(self, data_path: str,  tokenizer, normalize_features=False):
+    def __init__(self, data_path: str,  tokenizer, padding=True, normalize_features=False):
         self.tokenizer = tokenizer
         self.normalize_prefix = normalize_features
         with open(data_path, 'rb') as f:
@@ -80,6 +83,7 @@ class ClipCocoDataset(Dataset):
         captions_raw = all_data["captions"]
         self.image_ids = [caption["image_id"] for caption in captions_raw]
         self.captions = [caption['caption'] for caption in captions_raw]
+        self.padding=padding
         
         self.captions_tokens = []
         self.caption2embedding = []
