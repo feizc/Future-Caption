@@ -15,6 +15,7 @@ import os
 import argparse
 
 from models.configure import TransformerConfig 
+from train_aic import evaluate_metrics, train_scst 
 
 use_device = torch.cuda.is_available()
 device = torch.device('cuda:0' if use_device else 'cpu') 
@@ -98,8 +99,19 @@ def main():
 
     optimizer = AdamW(student_model.parameters(), lr=args.lr)  
 
+    best_cider = .0 
     for epoch in range(args.epochs):
-        train(student_model, teacher_model, train_dataloader, args, optimizer, epoch, tokenizer) 
+        loss = train(student_model, teacher_model, train_dataloader, args, optimizer, epoch, tokenizer) 
+        # As original model is kept unchanged, the evaluation is reusable 
+        scores = evaluate_metrics(student_model, train_dataloader, tokenizer, epoch) 
+        val_cider = scores['CIDEr'] 
+
+        if val_cider >= best_cider:
+            best_cider = val_cider
+            torch.save(
+                student_model.state_dict(), 
+                os.path.join(args.out_dir, f"{args.model_type}-{epoch:02d}.pt")
+            )
         break 
 
 
