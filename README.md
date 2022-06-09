@@ -16,7 +16,7 @@ clip
 ## 2. Dataset 
 
 To run the code, annotations and detection features for the COCO dataset are needed. Please download the annotations file [annotations.zip](https://drive.google.com/file/d/1i8mqKFKhqvBr8kEp3DbIh9-9UNAfKGmE/view?usp=sharing) and extract it.
-Detection features are computed with the pre-trained model provided by [CLIP](https://github.com/openai/CLIP). 
+Image representation are firstly computed with the pre-trained model provided by [CLIP](https://github.com/openai/CLIP). 
 
 ## 3. Training 
 
